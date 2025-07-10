@@ -120,11 +120,43 @@ const toastMessage = document.getElementById('toast-message');
 document.addEventListener('DOMContentLoaded', function() {
     loadProducts();
     updateCartDisplay();
+    initializeHeroVideo();
     
     // Add event listeners
     document.addEventListener('click', handleOutsideClick);
     window.addEventListener('scroll', handleScroll);
 });
+
+// Initialize hero video
+function initializeHeroVideo() {
+    const heroVideo = document.getElementById('hero-video');
+    if (heroVideo) {
+        // Ensure video plays on mobile devices
+        heroVideo.muted = true;
+        heroVideo.playsInline = true;
+        
+        // Handle video load error - fallback to image
+        heroVideo.addEventListener('error', function() {
+            console.log('Video failed to load, showing fallback image');
+            heroVideo.style.display = 'none';
+        });
+        
+        // Ensure video loops properly
+        heroVideo.addEventListener('ended', function() {
+            heroVideo.currentTime = 0;
+            heroVideo.play();
+        });
+        
+        // Try to play the video
+        const playPromise = heroVideo.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(function(error) {
+                console.log('Auto-play was prevented:', error);
+                // Auto-play was prevented, but that's okay for hero videos
+            });
+        }
+    }
+}
 
 // Load and display products
 function loadProducts(category = 'all', featured = true) {
@@ -454,6 +486,40 @@ function toggleCart() {
     } else {
         document.body.style.overflow = 'auto';
     }
+}
+
+// Filter products by category
+function filterByCategory(category, element) {
+    // Update active tab
+    document.querySelectorAll('.category-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    element.classList.add('active');
+    
+    // Update section title
+    const sectionTitle = document.querySelector('.section-title');
+    if (sectionTitle) {
+        const categoryNames = {
+            'all': 'SS25 - DROP 2',
+            'dresses': 'Dresses Collection',
+            'tops': 'Tops & Blouses',
+            'jumpsuits': 'Jumpsuits',
+            'sale': 'Sale Items'
+        };
+        sectionTitle.textContent = categoryNames[category] || 'Products';
+    }
+    
+    currentCategory = category;
+    loadProducts(category, false);
+    
+    // Add animation to products
+    setTimeout(() => {
+        const productCards = document.querySelectorAll('.product-card');
+        productCards.forEach((card, index) => {
+            card.style.animationDelay = `${index * 0.1}s`;
+            card.classList.add('animate-in');
+        });
+    }, 100);
 }
 
 // Show products by category
